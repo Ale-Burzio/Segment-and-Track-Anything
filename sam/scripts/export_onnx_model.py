@@ -39,12 +39,23 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--return-single-mask",
+    "--hq-token-only",
     action="store_true",
     help=(
-        "If true, the exported ONNX model will only return the best mask, "
-        "instead of returning multiple masks. For high resolution images "
-        "this can improve runtime when upscaling masks is expensive."
+        "False means use hq output to correct SAM output. True means use hq output only. Default: False "
+        "To achieve best visualization effect, for images contain multiple objects (like typical coco images),"
+        "We suggest to set hq_token_only=False. For images contain single object, we suggest to set hq_token_only = True"
+        "For quantiative evaluation on COCO/YTVOS/DAVIS/UVO/LVIS etc., we set hq_token_only = False."
+    ),
+)
+
+
+parser.add_argument(
+    "--multimask-output",
+    action="store_true",
+    help=(
+        "If true, the exported ONNX model will use multi-mask output mode and "
+        "select the best mask in multi-mask"
     ),
 )
 
@@ -99,7 +110,8 @@ def run_export(
     checkpoint: str,
     output: str,
     opset: int,
-    return_single_mask: bool,
+    hq_token_only: bool = False,
+    multimask_output: bool = False,
     gelu_approximate: bool = False,
     use_stability_score: bool = False,
     return_extra_metrics=False,
@@ -109,7 +121,8 @@ def run_export(
 
     onnx_model = SamOnnxModel(
         model=sam,
-        return_single_mask=return_single_mask,
+        hq_token_only=hq_token_only,
+        multimask_output=multimask_output,
         use_stability_score=use_stability_score,
         return_extra_metrics=return_extra_metrics,
     )
@@ -126,9 +139,13 @@ def run_export(
 
     embed_dim = sam.prompt_encoder.embed_dim
     embed_size = sam.prompt_encoder.image_embedding_size
+    encoder_embed_dim_dict = {"vit_b":768,"vit_l":1024,"vit_h":1280}
+    encoder_embed_dim = encoder_embed_dim_dict[model_type]
+
     mask_input_size = [4 * x for x in embed_size]
     dummy_inputs = {
         "image_embeddings": torch.randn(1, embed_dim, *embed_size, dtype=torch.float),
+        "interm_embeddings": torch.randn(4, 1, *embed_size, encoder_embed_dim, dtype=torch.float),
         "point_coords": torch.randint(low=0, high=1024, size=(1, 5, 2), dtype=torch.float),
         "point_labels": torch.randint(low=0, high=4, size=(1, 5), dtype=torch.float),
         "mask_input": torch.randn(1, 1, *mask_input_size, dtype=torch.float),
@@ -144,7 +161,7 @@ def run_export(
         warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)
         warnings.filterwarnings("ignore", category=UserWarning)
         with open(output, "wb") as f:
-            print(f"Exporing onnx model to {output}...")
+            print(f"Exporting onnx model to {output}...")
             torch.onnx.export(
                 onnx_model,
                 tuple(dummy_inputs.values()),
@@ -160,7 +177,9 @@ def run_export(
 
     if onnxruntime_exists:
         ort_inputs = {k: to_numpy(v) for k, v in dummy_inputs.items()}
-        ort_session = onnxruntime.InferenceSession(output)
+        # set cpu provider default
+        providers = ["CPUExecutionProvider"]
+        ort_session = onnxruntime.InferenceSession(output, providers=providers)
         _ = ort_session.run(None, ort_inputs)
         print("Model has successfully been run with ONNXRuntime.")
 
@@ -176,7 +195,8 @@ if __name__ == "__main__":
         checkpoint=args.checkpoint,
         output=args.output,
         opset=args.opset,
-        return_single_mask=args.return_single_mask,
+        hq_token_only=args.hq_token_only,
+        multimask_output=args.multimask_output,
         gelu_approximate=args.gelu_approximate,
         use_stability_score=args.use_stability_score,
         return_extra_metrics=args.return_extra_metrics,
