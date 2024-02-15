@@ -73,10 +73,10 @@ class SamAutomaticMaskGenerator:
             calculated the stability score.
           box_nms_thresh (float): The box IoU cutoff used by non-maximal
             suppression to filter duplicate masks.
-          crops_n_layers (int): If >0, mask prediction will be run again on
+          crop_n_layers (int): If >0, mask prediction will be run again on
             crops of the image. Sets the number of layers to run, where each
             layer has 2**i_layer number of image crops.
-          crops_nms_thresh (float): The box IoU cutoff used by non-maximal
+          crop_nms_thresh (float): The box IoU cutoff used by non-maximal
             suppression to filter duplicate masks between different crops.
           crop_overlap_ratio (float): Sets the degree to which crops overlap.
             In the first crop layer, crops will overlap by this fraction of
@@ -134,7 +134,7 @@ class SamAutomaticMaskGenerator:
         self.output_mode = output_mode
 
     @torch.no_grad()
-    def generate(self, image: np.ndarray) -> List[Dict[str, Any]]:
+    def generate(self, image: np.ndarray, multimask_output: bool = True) -> List[Dict[str, Any]]:
         """
         Generates masks for the given image.
 
@@ -160,7 +160,7 @@ class SamAutomaticMaskGenerator:
         """
 
         # Generate masks
-        mask_data = self._generate_masks(image)
+        mask_data = self._generate_masks(image, multimask_output)
 
         # Filter small disconnected regions and holes in masks
         if self.min_mask_region_area > 0:
@@ -194,7 +194,7 @@ class SamAutomaticMaskGenerator:
 
         return curr_anns
 
-    def _generate_masks(self, image: np.ndarray) -> MaskData:
+    def _generate_masks(self, image: np.ndarray, multimask_output: bool = True) -> MaskData:
         orig_size = image.shape[:2]
         crop_boxes, layer_idxs = generate_crop_boxes(
             orig_size, self.crop_n_layers, self.crop_overlap_ratio
@@ -203,7 +203,7 @@ class SamAutomaticMaskGenerator:
         # Iterate over image crops
         data = MaskData()
         for crop_box, layer_idx in zip(crop_boxes, layer_idxs):
-            crop_data = self._process_crop(image, crop_box, layer_idx, orig_size)
+            crop_data = self._process_crop(image, crop_box, layer_idx, orig_size, multimask_output)
             data.cat(crop_data)
 
         # Remove duplicate masks between crops
@@ -214,7 +214,7 @@ class SamAutomaticMaskGenerator:
             keep_by_nms = batched_nms(
                 data["boxes"].float(),
                 scores,
-                torch.zeros(len(data["boxes"])),  # categories
+                torch.zeros_like(data["boxes"][:, 0]),  # categories
                 iou_threshold=self.crop_nms_thresh,
             )
             data.filter(keep_by_nms)
@@ -228,6 +228,7 @@ class SamAutomaticMaskGenerator:
         crop_box: List[int],
         crop_layer_idx: int,
         orig_size: Tuple[int, ...],
+        multimask_output: bool = True,
     ) -> MaskData:
         # Crop the image and calculate embeddings
         x0, y0, x1, y1 = crop_box
@@ -242,7 +243,7 @@ class SamAutomaticMaskGenerator:
         # Generate masks for this crop in batches
         data = MaskData()
         for (points,) in batch_iterator(self.points_per_batch, points_for_image):
-            batch_data = self._process_batch(points, cropped_im_size, crop_box, orig_size)
+            batch_data = self._process_batch(points, cropped_im_size, crop_box, orig_size, multimask_output)
             data.cat(batch_data)
             del batch_data
         self.predictor.reset_image()
@@ -251,7 +252,7 @@ class SamAutomaticMaskGenerator:
         keep_by_nms = batched_nms(
             data["boxes"].float(),
             data["iou_preds"],
-            torch.zeros(len(data["boxes"])),  # categories
+            torch.zeros_like(data["boxes"][:, 0]),  # categories
             iou_threshold=self.box_nms_thresh,
         )
         data.filter(keep_by_nms)
@@ -269,6 +270,7 @@ class SamAutomaticMaskGenerator:
         im_size: Tuple[int, ...],
         crop_box: List[int],
         orig_size: Tuple[int, ...],
+        multimask_output: bool = True,
     ) -> MaskData:
         orig_h, orig_w = orig_size
 
@@ -279,7 +281,7 @@ class SamAutomaticMaskGenerator:
         masks, iou_preds, _ = self.predictor.predict_torch(
             in_points[:, None, :],
             in_labels[:, None],
-            multimask_output=True,
+            multimask_output=multimask_output,
             return_logits=True,
         )
 
@@ -357,7 +359,7 @@ class SamAutomaticMaskGenerator:
         keep_by_nms = batched_nms(
             boxes.float(),
             torch.as_tensor(scores),
-            torch.zeros(len(boxes)),  # categories
+            torch.zeros_like(boxes[:, 0]),  # categories
             iou_threshold=nms_thresh,
         )
 

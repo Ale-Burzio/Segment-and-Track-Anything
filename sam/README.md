@@ -1,44 +1,165 @@
-# Segment Anything
+# Segment Anything in High Quality
 
-**[Meta AI Research, FAIR](https://ai.facebook.com/research/)**
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/segment-anything-in-high-quality/zero-shot-segmentation-on-segmentation-in-the)](https://paperswithcode.com/sota/zero-shot-segmentation-on-segmentation-in-the?p=segment-anything-in-high-quality)
+<a href="https://colab.research.google.com/drive/1QwAbn5hsdqKOD5niuBzuqQX4eLCbNKFL?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
+[![Huggingfaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/sam-hq-team/sam-hq)
+[![Open in OpenXLab](https://cdn-static.openxlab.org.cn/app-center/openxlab_app.svg)](https://openxlab.org.cn/apps/detail/keleiwhu/sam-hq)
+[![Downloads](https://static.pepy.tech/badge/segment-anything-hq)](https://pepy.tech/project/segment-anything-hq)
 
-[Alexander Kirillov](https://alexander-kirillov.github.io/), [Eric Mintun](https://ericmintun.github.io/), [Nikhila Ravi](https://nikhilaravi.com/), [Hanzi Mao](https://hanzimao.me/), Chloe Rolland, Laura Gustafson, [Tete Xiao](https://tetexiao.com), [Spencer Whitehead](https://www.spencerwhitehead.com/), Alex Berg, Wan-Yen Lo, [Piotr Dollar](https://pdollar.github.io/), [Ross Girshick](https://www.rossgirshick.info/)
 
-[[`Paper`](https://ai.facebook.com/research/publications/segment-anything/)] [[`Project`](https://segment-anything.com/)] [[`Demo`](https://segment-anything.com/demo)] [[`Dataset`](https://segment-anything.com/dataset/index.html)] [[`Blog`](https://ai.facebook.com/blog/segment-anything-foundation-model-image-segmentation/)] [[`BibTeX`](#citing-segment-anything)]
+> [**Segment Anything in High Quality**](https://arxiv.org/abs/2306.01567)           
+> NeurIPS 2023  
+> ETH Zurich & HKUST 
 
-![SAM design](assets/model_diagram.png?raw=true)
+We propose HQ-SAM to upgrade SAM for high-quality zero-shot segmentation. Refer to our [paper](https://arxiv.org/abs/2306.01567) for more details.
 
-The **Segment Anything Model (SAM)** produces high quality object masks from input prompts such as points or boxes, and it can be used to generate masks for all objects in an image. It has been trained on a [dataset](https://segment-anything.com/dataset/index.html) of 11 million images and 1.1 billion masks, and has strong zero-shot performance on a variety of segmentation tasks.
+Updates
+-----------------
+:fire::fire: **SAM in 3D**: Interested in intersecting SAM and 3D Gaussian Splatting? See our new work [Gaussian Grouping](https://github.com/lkeab/gaussian-grouping)!
 
-<p float="left">
-  <img src="assets/masks1.png?raw=true" width="37.25%" />
-  <img src="assets/masks2.jpg?raw=true" width="61.5%" /> 
-</p>
+2023/12/15: HQ-SAM is adopted in [Osprey](https://arxiv.org/abs/2312.10032) to provide fine-grained mask annotation and also [CaR](https://torrvision.com/clip_as_rnn/) method.
 
-## Installation
+2023/11/06: HQ-SAM is adopted to annotate the Grounding-anything Dataset proposed by [GLaMM](https://arxiv.org/abs/2311.03356).
 
+2023/10/15: HQ-SAM is supported in the [OpenMMLab PlayGround](https://github.com/open-mmlab/playground/blob/main/label_anything/readme.md) for annotation with Label-Studio.
+
+2023/09/28: HQ-SAM is in [ENIGMA-51](https://iplab.dmi.unict.it/ENIGMA-51/) for annotating egocentric industrial data, with SAM comparison in [paper](https://arxiv.org/abs/2309.14809).
+
+2023/08/16: HQ-SAM is in [segment-geospatial](https://github.com/opengeos/segment-geospatial) for segmenting geospatial data, and mask annotation tool [ISAT](https://github.com/yatengLG/ISAT_with_segment_anything)!
+
+2023/08/11: Support [python package](#quick-installation-via-pip) for easier **pip installation**.
+
+2023/07/25: Light HQ-SAM is in [EfficientSAM series](https://github.com/IDEA-Research/Grounded-Segment-Anything/tree/main/EfficientSAM) combining with [Grounded SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything/)!
+
+2023/07/21: HQ-SAM is also in OpenXLab apps, thanks their support!
+
+:rocket::rocket: 2023/07/17: We released **Light HQ-SAM** using TinyViT as backbone, for both fast and high-quality zero-shot segmentation, which reaches **41.2 FPS**. Refer to [Light HQ-SAM vs. MobileSAM](#light-hq-sam-vs-mobilesam-on-coco) for more details.
+
+:trophy::1st_place_medal: 2023/07/14: Grounded **HQ-SAM** obtains the **first place**:1st_place_medal: in the [Segmentation in the Wild](https://eval.ai/web/challenges/challenge-page/1931/leaderboard/4567) competition on zero-shot track (hosted in [CVPR 2023 workshop](https://computer-vision-in-the-wild.github.io/cvpr-2023/)), outperforming Grounded SAM. Refer to our [SGinW evaluation](#grounded-hq-sam-vs-grounded-sam-on-seginw) for more details.
+
+2023/07/05: We released [SAM tuning instuctions](#hq-sam-tuning-and-hq-seg44k-data) and [HQSeg-44K data](#hq-sam-tuning-and-hq-seg44k-data).
+
+2023/07/04: HQ-SAM is adopted in [SAM-PT](https://github.com/SysCV/sam-pt) to improve the SAM-based zero-shot video segmentation performance. Also, HQ-SAM is used in [Grounded-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [Inpaint Anything](https://github.com/Uminosachi/sd-webui-inpaint-anything) and [HQTrack](https://github.com/jiawen-zhu/HQTrack) (2nd in VOTS 2023).
+
+2023/06/28: We released the [ONNX export script](#onnx-export) and [colab notebook](https://colab.research.google.com/drive/11U2La49c2IxahzJkAV-EzPqEH3cz_5hq?usp=sharing) for exporting and using ONNX model.
+
+2023/06/23: Play with HQ-SAM demo at [![Huggingfaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/sam-hq-team/sam-hq), which supports point, box and text prompts.
+
+2023/06/14: We released the [colab demo](https://colab.research.google.com/drive/1QwAbn5hsdqKOD5niuBzuqQX4eLCbNKFL?usp=sharing) <a href="https://colab.research.google.com/drive/1QwAbn5hsdqKOD5niuBzuqQX4eLCbNKFL?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> and [automatic mask generator notebook](https://colab.research.google.com/drive/1dhRq4eR6Fbl-yl1vbQvU9hqyyeOidQaU?usp=sharing).
+
+2023/06/13: We released the [model checkpoints](#model-checkpoints) and [demo visualization codes](#getting-started).
+
+Visual comparison between SAM and HQ-SAM
+-----------------
+**SAM vs. HQ-SAM**
+<table>
+  <tr>
+    <td><img src="visual_demo/1.gif" width="250"></td>
+    <td><img src="visual_demo/2.gif" width="250"></td>
+    <td><img src="visual_demo/3.gif" width="250"></td>
+  </tr>
+  <tr>
+    <td><img src="visual_demo/4.gif" width="250"></td>
+    <td><img src="visual_demo/5.gif" width="250"></td>
+    <td><img src="visual_demo/6.gif" width="250"></td>
+  </tr>
+</table>
+
+<img width="900" alt="image" src='figs/coco_vis_comp.png'>
+
+Introduction
+-----------------
+The recent Segment Anything Model (SAM) represents a big leap in scaling up segmentation models, allowing for powerful zero-shot capabilities and flexible prompting. Despite being trained with 1.1 billion masks, SAM's mask prediction quality falls short in many cases, particularly when dealing with objects that have intricate structures. We propose HQ-SAM, equipping SAM with the ability to accurately segment any object, while maintaining SAM's original promptable design, efficiency, and zero-shot generalizability. Our careful design reuses and preserves the pre-trained model weights of SAM, while only introducing minimal additional parameters and computation. We design a learnable High-Quality Output Token, which is injected into SAM's mask decoder and is responsible for predicting the high-quality mask. Instead of only applying it on mask-decoder features, we first fuse them with early and final ViT features for improved mask details. To train our introduced learnable parameters, we compose a dataset of 44K fine-grained masks from several sources. HQ-SAM is only trained on the introduced detaset of 44k masks, which takes only 4 hours on 8 GPUs. We show the efficacy of HQ-SAM in a suite of 9 diverse segmentation datasets across different downstream tasks, where 7 out of them are evaluated in a zero-shot transfer protocol. 
+
+<img width="1096" alt="image" src='figs/sam-hf-framework.png'>
+
+Quantitative comparison between SAM and HQ-SAM
+-----------------
+Note: For box-prompting-based evaluation, we feed SAM, MobileSAM and our HQ-SAM with the same image/video bounding boxes and adopt the single mask output mode of SAM. 
+
+We provide comprehensive performance, model size and speed comparison on SAM variants:
+<img width="1096" alt="image" src='figs/sam_variants_comp.png'>
+
+### Various ViT backbones on COCO:
+![backbones](figs/sam_vs_hqsam_backbones.png)
+Note: For the COCO dataset, we use a SOTA detector FocalNet-DINO trained on the COCO dataset as our box prompt generator.
+
+### YTVIS and HQ-YTVIS
+Note:Using ViT-L backbone. We adopt the SOTA detector Mask2Former trained on the YouTubeVIS 2019 dataset as our video boxes prompt generator while reusing its object association prediction.
+![ytvis](figs/ytvis.png)
+
+### DAVIS
+Note: Using ViT-L backbone. We adopt the SOTA model XMem as our video boxes prompt generator while reusing its object association prediction.
+![davis](figs/davis.png)
+
+### **Quick Installation via pip**
+```
+pip install segment-anything-hq
+python
+from segment_anything_hq import sam_model_registry
+model_type = "<model_type>" #"vit_l/vit_b/vit_h/vit_tiny"
+sam_checkpoint = "<path/to/checkpoint>"
+sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
+```
+
+see specific usage example (such as vit-l) by running belowing command:
+```
+export PYTHONPATH=$(pwd)
+python demo/demo_hqsam_pip_example.py
+```
+
+
+### **Standard Installation**
 The code requires `python>=3.8`, as well as `pytorch>=1.7` and `torchvision>=0.8`. Please follow the instructions [here](https://pytorch.org/get-started/locally/) to install both PyTorch and TorchVision dependencies. Installing both PyTorch and TorchVision with CUDA support is strongly recommended.
 
-Install Segment Anything:
+Clone the repository locally and install with
 
 ```
-pip install git+https://github.com/facebookresearch/segment-anything.git
-```
-
-or clone the repository locally and install with
-
-```
-git clone git@github.com:facebookresearch/segment-anything.git
-cd segment-anything; pip install -e .
+git clone https://github.com/SysCV/sam-hq.git
+cd sam-hq; pip install -e .
 ```
 
 The following optional dependencies are necessary for mask post-processing, saving masks in COCO format, the example notebooks, and exporting the model in ONNX format. `jupyter` is also required to run the example notebooks.
+
 ```
-pip install opencv-python pycocotools matplotlib onnxruntime onnx
+pip install opencv-python pycocotools matplotlib onnxruntime onnx timm
 ```
 
+### Example conda environment setup
+```bash
+conda create --name sam_hq python=3.8 -y
+conda activate sam_hq
+conda install pytorch==1.10.0 torchvision==0.11.0 cudatoolkit=11.1 -c pytorch -c nvidia
+pip install opencv-python pycocotools matplotlib onnxruntime onnx timm
 
-## <a name="GettingStarted"></a>Getting Started
+# under your working directory
+git clone https://github.com/SysCV/sam-hq.git
+cd sam-hq
+pip install -e .
+export PYTHONPATH=$(pwd)
+```
+
+### **Model Checkpoints**
+
+Three HQ-SAM model versions of the model are available with different backbone sizes. These models can be instantiated by running
+
+```
+from segment_anything import sam_model_registry
+sam = sam_model_registry["<model_type>"](checkpoint="<path/to/checkpoint>")
+```
+
+Download the provided trained model below and put them into the pretrained_checkpoint folder:
+```
+mkdir pretrained_checkpoint
+``` 
+
+Click the links below to download the checkpoint for the corresponding model type. We also provide **alternative model downloading links** [here](https://github.com/SysCV/sam-hq/issues/5) or at [hugging face](https://huggingface.co/lkeab/hq-sam/tree/main).
+- `vit_b`: [ViT-B HQ-SAM model.](https://drive.google.com/file/d/11yExZLOve38kRZPfRx_MRxfIAKmfMY47/view?usp=sharing)
+- `vit_l`: [ViT-L HQ-SAM model.](https://drive.google.com/file/d/1Uk17tDKX1YAKas5knI4y9ZJCo0lRVL0G/view?usp=sharing)
+- `vit_h`: [ViT-H HQ-SAM model.](https://drive.google.com/file/d/1qobFYrI4eyIANfBSmYcGuWRaSIXfMOQ8/view?usp=sharing)
+- `vit_tiny` (**Light HQ-SAM** for real-time need): [ViT-Tiny HQ-SAM model.](https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_tiny.pth)
+
+### **Getting Started**
 
 First download a [model checkpoint](#model-checkpoints). Then the model can be used in just a few lines to get masks from a given prompt:
 
@@ -50,114 +171,144 @@ predictor.set_image(<your_image>)
 masks, _, _ = predictor.predict(<input_prompts>)
 ```
 
-or generate masks for an entire image:
+Additionally, see the usage examples in our [demo](/demo/demo_hqsam.py) , [colab notebook](https://colab.research.google.com/drive/1QwAbn5hsdqKOD5niuBzuqQX4eLCbNKFL?usp=sharing) and [automatic mask generator notebook](https://colab.research.google.com/drive/1dhRq4eR6Fbl-yl1vbQvU9hqyyeOidQaU?usp=sharing).
 
+To obtain HQ-SAM's visual result:
 ```
-from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
-sam = sam_model_registry["<model_type>"](checkpoint="<path/to/checkpoint>")
-mask_generator = SamAutomaticMaskGenerator(sam)
-masks = mask_generator.generate(<your_image>)
+python demo/demo_hqsam.py
 ```
 
-Additionally, masks can be generated for images from the command line:
-
+To obtain baseline SAM's visual result. Note that you need to download original SAM checkpoint from [baseline-SAM-L model](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth) and put it into the pretrained_checkpoint folder.
 ```
-python scripts/amg.py --checkpoint <path/to/checkpoint> --model-type <model_type> --input <image_or_folder> --output <path/to/output>
+python demo/demo_sam.py
 ```
 
-See the examples notebooks on [using SAM with prompts](/notebooks/predictor_example.ipynb) and [automatically generating masks](/notebooks/automatic_mask_generator_example.ipynb) for more details.
+To obtain Light HQ-SAM's visual result:
+```
+python demo/demo_hqsam_light.py
+```
 
-<p float="left">
-  <img src="assets/notebook1.png?raw=true" width="49.1%" />
-  <img src="assets/notebook2.png?raw=true" width="48.9%" />
-</p>
+### **HQ-SAM Tuning and HQ-Seg44k Data**
+We provide detailed training, evaluation, visualization and data downloading instructions in [HQ-SAM training](train/README.md). You can also replace our training data to obtain your own SAM in specific application domain (like medical, OCR and remote sensing).
 
-## ONNX Export
+Please change the current folder path to:
+```
+cd train
+```
+and then refer to detailed [readme instruction](train/README.md).
 
-SAM's lightweight mask decoder can be exported to ONNX format so that it can be run in any environment that supports ONNX runtime, such as in-browser as showcased in the [demo](https://segment-anything.com/demo). Export the model with
+### **Grounded HQ-SAM vs Grounded SAM on [SegInW](https://eval.ai/web/challenges/challenge-page/1931/overview?ref=blog.roboflow.com)**
 
+Grounded HQ-SAM wins the **first place**:1st_place_medal: on SegInW benchmark (consist of 25 public zero-shot in the wild segmentation datasets), and outpuerforming Grounded SAM using the same grounding-dino detector.
+
+<table><tbody>
+<!-- START TABLE -->
+<!-- TABLE HEADER -->
+<th valign="bottom">Model Name</th>
+<th valign="bottom">Encoder</th>
+<th valign="bottom">GroundingDINO</th>
+<th valign="bottom">Mean AP</th>
+<th valign="bottom">Evaluation Script</th>
+<th valign="bottom">Log</th>
+<th valign="bottom">Output Json</th>
+<!-- TABLE BODY -->
+<!-- ROW: maskformer2_R50_bs16_50ep -->
+ <tr><td align="left">Grounded SAM</td>
+<td align="center">vit-h</td>
+<td align="center">swin-b</td>
+<td align="center">48.7</td>
+<td align="center"><a href="seginw/test_seginw.sh">script</a></td>
+<td align="center"><a href="seginw/logs/grounded_sam.log">log</a></td>
+<td align="center"><a href="https://huggingface.co/sam-hq-team/SegInW/resolve/main/result/grounded_sam.zip">result</a></td>
+</tr>
+<!-- ROW: maskformer2_R101_bs16_50ep -->
+ <tr><td align="left">Grounded HQ-SAM</td>
+<td align="center">vit-h</td>
+<td align="center">swin-b</td>
+<td align="center"><b>49.6</b></td>
+<td align="center"><a href="seginw/test_seginw_hq.sh">script</a></td>
+<td align="center"><a href="seginw/logs/grounded_hqsam.log">log</a></td>
+<td align="center"><a href="https://huggingface.co/sam-hq-team/SegInW/resolve/main/result/grounded_hqsam.zip">result</a></td>
+</tr>
+</tbody></table>
+
+Please change the current folder path to:
+```
+cd seginw
+```
+We provide detailed evaluation instructions and metrics on SegInW in [Grounded-HQ-SAM evaluation](seginw/README.md).
+
+### **Light HQ-SAM vs MobileSAM on COCO**
+We propose [Light HQ-SAM](#model-checkpoints) based on the tiny vit image encoder provided by MobileSAM. We provide quantitative comparison on zero-shot COCO performance, speed and memory below. Try Light HQ-SAM at [here](#getting-started).
+
+<table><tbody>
+<!-- START TABLE -->
+<!-- TABLE HEADER -->
+<th valign="bottom">Model</th>
+<th valign="bottom">Encoder</th>
+<th valign="bottom">AP</th>
+<th valign="bottom">AP@L</th>
+<th valign="bottom">AP@M</th>
+<th valign="bottom">AP@S</th>
+<th valign="bottom">Model Params (MB)</th>
+<th valign="bottom">FPS</th>
+<th valign="bottom">Memory (GB)</th>
+<!-- TABLE BODY -->
+<!-- ROW: maskformer2_R50_bs16_50ep -->
+ <tr><td align="left">MobileSAM</td>
+<td align="center">TinyViT</td>
+<td align="center">44.3</td>
+<td align="center">61.8</td>
+<td align="center">48.1</td>
+<td align="center">28.8</td>
+<td align="center">38.6</td>
+<td align="center">44.8</td>
+<td align="center">3.7</td>
+</tr>
+<!-- ROW: maskformer2_R101_bs16_50ep -->
+ <tr><td align="left"><b>Light HQ-SAM</b></td>
+ <td align="center">TinyViT</td>
+<td align="center"><b>45.0</b></td>
+<td align="center">62.8</td>
+<td align="center">48.8</td>
+<td align="center">29.2</td>
+<td align="center">40.3</td>
+<td align="center">41.2</td>
+<td align="center">3.7</td>
+</tr>
+</tbody></table>
+
+Note: For the COCO dataset, we use the same SOTA detector FocalNet-DINO trained on the COCO dataset as our and Mobile sam's box prompt generator.
+
+
+### **ONNX export**
+HQ-SAM's lightweight mask decoder can be exported to ONNX format so that it can be run in any environment that supports ONNX runtime. Export the model with
 ```
 python scripts/export_onnx_model.py --checkpoint <path/to/checkpoint> --model-type <model_type> --output <path/to/output>
 ```
+See the [example notebook](https://colab.research.google.com/drive/11U2La49c2IxahzJkAV-EzPqEH3cz_5hq?usp=sharing) for details on how to combine image preprocessing via HQ-SAM's backbone with mask prediction using the ONNX model. It is recommended to use the latest stable version of PyTorch for ONNX export.
 
-See the [example notebook](https://github.com/facebookresearch/segment-anything/blob/main/notebooks/onnx_model_example.ipynb) for details on how to combine image preprocessing via SAM's backbone with mask prediction using the ONNX model. It is recommended to use the latest stable version of PyTorch for ONNX export.
 
-## <a name="Models"></a>Model Checkpoints
-
-Three model versions of the model are available with different backbone sizes. These models can be instantiated by running 
+Citation
+---------------
+If you find HQ-SAM useful in your research or refer to the provided baseline results, please star :star: this repository and consider citing :pencil::
 ```
-from segment_anything import sam_model_registry
-sam = sam_model_registry["<model_type>"](checkpoint="<path/to/checkpoint>")
+@inproceedings{sam_hq,
+    title={Segment Anything in High Quality},
+    author={Ke, Lei and Ye, Mingqiao and Danelljan, Martin and Liu, Yifan and Tai, Yu-Wing and Tang, Chi-Keung and Yu, Fisher},
+    booktitle={NeurIPS},
+    year={2023}
+}  
 ```
-Click the links below to download the checkpoint for the corresponding model type.
-
-* **`default` or `vit_h`: [ViT-H SAM model.](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth)**
-* `vit_l`: [ViT-L SAM model.](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth)
-* `vit_b`: [ViT-B SAM model.](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth)
-
-## Dataset
-See [here](https://ai.facebook.com/datasets/segment-anything/) for an overview of the datastet. The dataset can be downloaded [here](https://ai.facebook.com/datasets/segment-anything-downloads/). By downloading the datasets you agree that you have read and accepted the terms of the SA-1B Dataset Research License.
-
-We save masks per image as a json file. It can be loaded as a dictionary in python in the below format.
-
-
-```python
-{
-    "image"                 : image_info,
-    "annotations"           : [annotation],
-}
-
-image_info {
-    "image_id"              : int,              # Image id
-    "width"                 : int,              # Image width
-    "height"                : int,              # Image height
-    "file_name"             : str,              # Image filename
-}
-
-annotation {
-    "id"                    : int,              # Annotation id
-    "segmentation"          : dict,             # Mask saved in COCO RLE format.
-    "bbox"                  : [x, y, w, h],     # The box around the mask, in XYWH format
-    "area"                  : int,              # The area in pixels of the mask
-    "predicted_iou"         : float,            # The model's own prediction of the mask's quality
-    "stability_score"       : float,            # A measure of the mask's quality
-    "crop_box"              : [x, y, w, h],     # The crop of the image used to generate the mask, in XYWH format
-    "point_coords"          : [[x, y]],         # The point coordinates input to the model to generate the mask
+Related high-quality instance segmentation work:
+```
+@inproceedings{transfiner,
+    title={Mask Transfiner for High-Quality Instance Segmentation},
+    author={Ke, Lei and Danelljan, Martin and Li, Xia and Tai, Yu-Wing and Tang, Chi-Keung and Yu, Fisher},
+    booktitle={CVPR},
+    year={2022}
 }
 ```
 
-Image ids can be found in sa_images_ids.txt which can be downloaded using the above [link](https://ai.facebook.com/datasets/segment-anything-downloads/) as well.
-
-To decode a mask in COCO RLE format into binary:
-```
-from pycocotools import mask as mask_utils
-mask = mask_utils.decode(annotation["segmentation"])
-```
-See [here](https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocotools/mask.py) for more instructions to manipulate masks stored in RLE format.
-
-
-## License
-The model is licensed under the [Apache 2.0 license](LICENSE).
-
-## Contributing
-
-See [contributing](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
-
-## Contributors
-
-The Segment Anything project was made possible with the help of many contributors (alphabetical):
-
-Aaron Adcock, Vaibhav Aggarwal, Morteza Behrooz, Cheng-Yang Fu, Ashley Gabriel, Ahuva Goldstand, Allen Goodman, Sumanth Gurram, Jiabo Hu, Somya Jain, Devansh Kukreja, Robert Kuo, Joshua Lane, Yanghao Li, Lilian Luong, Jitendra Malik, Mallika Malhotra, William Ngan, Omkar Parkhi, Nikhil Raina, Dirk Rowe, Neil Sejoor, Vanessa Stark, Bala Varadarajan, Bram Wasti, Zachary Winstrom
-
-## Citing Segment Anything
-
-If you use SAM or SA-1B in your research, please use the following BibTeX entry. 
-
-```
-@article{kirillov2023segany,
-  title={Segment Anything}, 
-  author={Kirillov, Alexander and Mintun, Eric and Ravi, Nikhila and Mao, Hanzi and Rolland, Chloe and Gustafson, Laura and Xiao, Tete and Whitehead, Spencer and Berg, Alexander C. and Lo, Wan-Yen and Doll{\'a}r, Piotr and Girshick, Ross},
-  journal={arXiv:2304.02643},
-  year={2023}
-}
-```
+## Acknowledgments
+- Thanks [SAM](https://github.com/facebookresearch/segment-anything), [Grounded SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything) and [MobileSAM](https://github.com/ChaoningZhang/MobileSAM) for their public code and released models.

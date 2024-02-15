@@ -26,7 +26,7 @@ class MaskDecoder(nn.Module):
     ) -> None:
         """
         Predicts masks given an image and prompt embeddings, using a
-        tranformer architecture.
+        transformer architecture.
 
         Arguments:
           transformer_dim (int): the channel dimension of the transformer
@@ -75,6 +75,8 @@ class MaskDecoder(nn.Module):
         sparse_prompt_embeddings: torch.Tensor,
         dense_prompt_embeddings: torch.Tensor,
         multimask_output: bool,
+        hq_token_only: bool,
+        interm_embeddings: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Predict masks given image and prompt embeddings.
@@ -98,7 +100,7 @@ class MaskDecoder(nn.Module):
             dense_prompt_embeddings=dense_prompt_embeddings,
         )
 
-        # Select the correct mask or masks for outptu
+        # Select the correct mask or masks for output
         if multimask_output:
             mask_slice = slice(1, None)
         else:

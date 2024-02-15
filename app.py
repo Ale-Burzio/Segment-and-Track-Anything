@@ -576,8 +576,8 @@ def seg_track_app():
                                 label='sam_gap',
                                 minimum = 1,
                                 step=1,
-                                maximum = 9999,
-                                value=100,
+                                maximum = 99999,
+                                value=10000,
                                 interactive=True,
                             )
 
@@ -600,8 +600,8 @@ def seg_track_app():
                                     value = "r50_deaotl",
                                     interactive=True,
                                 )
-                                long_term_mem = gr.Slider(label="long term memory gap", minimum=1, maximum=9999, value=9999, step=1)
-                                max_len_long_term = gr.Slider(label="max len of long term memory", minimum=1, maximum=9999, value=9999, step=1)
+                                long_term_mem = gr.Slider(label="long term memory gap", minimum=1, maximum=9999, value=100, step=10)
+                                max_len_long_term = gr.Slider(label="max len of long term memory", minimum=1, maximum=9999, value=800, step=10)
 
 
                     
@@ -1099,7 +1099,7 @@ def seg_track_app():
             )
     
     app.queue(concurrency_count=1)
-    app.launch(debug=True, enable_queue=True, share=True)
+    app.launch(debug=True, enable_queue=True, share=False)
 
 
 if __name__ == "__main__":
